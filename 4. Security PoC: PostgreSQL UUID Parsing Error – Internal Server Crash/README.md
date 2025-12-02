@@ -3,6 +3,12 @@
 ### Overview
 A critical vulnerability was identified where supplying malformed UUIDs to an API endpoint expecting UUID input leads to a PostgreSQL parsing error. This error, in turn, causes an internal server crash, making the service unavailable.
 
+| Metric | Value | Rationale |
+| :--- | :--- | :--- |
+| **Severity** | **High** | The vulnerability allows any unauthenticated user to easily render the service or specific high-traffic functionalities unavailable, posing a direct threat to service availability. |
+| **CWE** | **CWE-20** | Improper Input Validation. The application fails to validate the format of the path parameter (UUID string) before passing it to the database driver. |
+| **Risk Rating** | **High** | The flaw enables a highly effective Denial of Service (DoS) attack, directly impacting business continuity.
+
 ### Impact
 This vulnerability creates a **Denial of Service (DoS) opportunity**. An attacker can trigger a server crash by repeatedly sending malformed UUIDs, effectively rendering the service or specific functionalities unavailable to legitimate users.
 
@@ -21,3 +27,10 @@ This vulnerability creates a **Denial of Service (DoS) opportunity**. An attacke
 
 ### Tools Used
 •   Postman
+
+### Recommended Remediation
+To mitigate this Denial of Service vulnerability, robust validation must be enforced at the application layer:
+
+1.  **Application-Level Validation (Must-Have):** Implement strict validation on the API gateway or controller layer to ensure the path parameter conforms to the standard UUID format (32 hexadecimal characters, optionally separated by hyphens) **before** making the database call. If the format is invalid, return a standard `400 Bad Request` instantly.
+2.  **Generic Error Handling:** Ensure that the server does not expose detailed internal information (like database driver or SQL error messages) when a `500 Internal Server Error` occurs. Use generic error pages.
+3.  **Resource Limits:** Implement rate limiting (throttling) on the API endpoint to mitigate the DoS threat from mass repeated requests.
